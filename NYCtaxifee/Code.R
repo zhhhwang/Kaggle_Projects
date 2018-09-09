@@ -25,8 +25,9 @@ lga_coor_lati <- (40.7721 * pi)/halfCircleDegree
 lga_coor_long <- (-73.8686 * pi)/halfCircleDegree
 ewr_coor_lati <- (40.6917 * pi)/halfCircleDegree
 ewr_coor_long <- (-74.1807 * pi)/halfCircleDegree
-feature <- c("passenger_count", "weekday", "miles", "timeFrame") 
+feature <- c("passenger_count", "weekday", "miles", "timeFrame", "pickupToJFK", "pickupToLGA", "pickupToEWR", "dropoffToJFK", "dropoffToLGA", "dropoffToEWR") 
 label <- c("fare_amount")
+folds <- 5
 
 # Funciton in calculating the haversine distance between two gps coordinates
 GPSdistance <- function(coor1_longitude, coor1_latitude, coor2_longitude, coor2_latitude){
@@ -48,15 +49,38 @@ train <- train %>% separate(pickup_datetime, into = c("date", "time", "zone"), s
          dropoff_latitude = (dropoff_latitude * pi) / halfCircleDegree) %>%
   mutate(weekday = weekdays(as.Date(date))) %>% 
   mutate(miles = GPSdistance(pickup_longitude, pickup_latitude, dropoff_longitude, dropoff_latitude)) %>%
-  mutate(timeFrame = substr(time, 1, 2)) %>% mutate(timeFrame = as.numeric(timeFrame))# %>%
-  #mutate(JFK = )
+  mutate(timeFrame = substr(time, 1, 2)) %>% mutate(timeFrame = as.numeric(timeFrame)) %>%
+  mutate(yearFrame = substr(date, 1, 4)) %>% mutate(yearFrame = as.numeric(yearFrame)) %>%
+  mutate(monthFrame = substr(date, 6, 7)) %>% mutate(monthFrame = as.numeric(monthFrame)) %>% 
+  mutate(pickupToJFK = (GPSdistance(pickup_longitude, pickup_latitude, jfk_coor_long, jfk_coor_lati))) %>%
+  mutate(pickupToLGA = (GPSdistance(pickup_longitude, pickup_latitude, lga_coor_long, lga_coor_lati))) %>%
+  mutate(pickupToEWR = (GPSdistance(pickup_longitude, pickup_latitude, ewr_coor_long, ewr_coor_lati))) %>%
+  mutate(dropoffToJFK = (GPSdistance(dropoff_longitude, dropoff_latitude, jfk_coor_long, jfk_coor_lati))) %>%
+  mutate(dropoffToLGA = (GPSdistance(dropoff_longitude, dropoff_latitude, lga_coor_long, lga_coor_lati))) %>%
+  mutate(dropoffToEWR = (GPSdistance(dropoff_longitude, dropoff_latitude, ewr_coor_long, ewr_coor_lati)))
+
   
 ########################
 # Training and Testing #
 ########################
 
 # Setting up cross validation index
-xgbModel <- xgboost(data = model.matrix(~ . + 0, train[, feature]), label = as.matrix(train[, label]), max.depth = 6, nrounds = 250, nthread = 4)
+train$cvIndex <- ceiling(sample(1:nrow(train), nrow(train)) / (nrow(train) / folds))
+
+# cross validation
+rmse <- rep(NA, folds)
+for(i in 1:folds){
+  training <- train[train$cvIndex != i, ] 
+  testing <- train[train$cvIndex == i, ] 
+  xgbModel <- xgboost(data = model.matrix(~ . + 0, training[, feature]), label = as.matrix(training[, label]), max.depth = 8, nrounds = 200, nthread = 6, verbose = 0)
+  predictions <- predict(xgbModel, model.matrix(~ . + 0, testing[, feature]))
+  rmse[i] <- sqrt(mean((predictions - testing$fare_amount)^2))
+  print(i)
+}
+
+# Model Training and Testing
+# xgbModel <- xgboost(data = model.matrix(~ . + 0, train[, feature]), label = as.matrix(train[, label]), max.depth = 6, nrounds = 1000, nthread = 2, verbose = 1)
+# predictions <- predict(xgbModel, model.matrix(~ . + 0, train[, feature]))
 
 
   
