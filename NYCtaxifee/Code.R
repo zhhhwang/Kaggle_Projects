@@ -9,7 +9,8 @@ library(lubridate)
 ###############
 
 # Comments on the other directories
-train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
+# train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
+train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
 
 ######################
 # Data Preprocessing #
