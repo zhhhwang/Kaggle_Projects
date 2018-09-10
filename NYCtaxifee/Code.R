@@ -72,7 +72,7 @@ rmse <- rep(NA, folds)
 for(i in 1:folds){
   training <- train[train$cvIndex != i, ] 
   testing <- train[train$cvIndex == i, ] 
-  xgbModel <- xgboost(data = model.matrix(~ . + 0, training[, feature]), label = as.matrix(training[, label]), max.depth = 8, nrounds = 1000, nthread = 6, verbose = 1)
+  xgbModel <- xgboost(data = model.matrix(~ . + 0, training[, feature]), label = as.matrix(training[, label]), max.depth = 8, nrounds = 10000, nthread = 4, verbose = 1)
   predictions <- predict(xgbModel, model.matrix(~ . + 0, testing[, feature]))
   rmse[i] <- sqrt(mean((predictions - testing$fare_amount)^2))
   print(i)
@@ -81,6 +81,8 @@ for(i in 1:folds){
 # Model Training and Testing
 # xgbModel <- xgboost(data = model.matrix(~ . + 0, train[, feature]), label = as.matrix(train[, label]), max.depth = 6, nrounds = 1000, nthread = 2, verbose = 1)
 # predictions <- predict(xgbModel, model.matrix(~ . + 0, train[, feature]))
+
+write.table(rmse, "outputRMSE.txt")
 
 
   
