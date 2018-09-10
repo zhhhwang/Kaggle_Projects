@@ -29,6 +29,12 @@ feature <- c("passenger_count", "weekday", "miles", "timeFrame", "pickupToJFK", 
 label <- c("fare_amount")
 folds <- 5
 
+# Const for xgboost
+maxDepth <- 8
+roundNum <- 500
+threadNum <- 4
+presentResult <- 1
+
 # Funciton in calculating the haversine distance between two gps coordinates
 GPSdistance <- function(coor1_longitude, coor1_latitude, coor2_longitude, coor2_latitude){
   longD <- coor2_longitude - coor1_longitude
@@ -72,7 +78,7 @@ rmse <- rep(NA, folds)
 for(i in 1:folds){
   training <- train[train$cvIndex != i, ] 
   testing <- train[train$cvIndex == i, ] 
-  xgbModel <- xgboost(data = model.matrix(~ . + 0, training[, feature]), label = as.matrix(training[, label]), max.depth = 8, nrounds = 10000, nthread = 4, verbose = 1)
+  xgbModel <- xgboost(data = model.matrix(~ . + 0, training[, feature]), label = as.matrix(training[, label]), max.depth = maxDepth, nrounds = roundNum, nthread = threadNum, verbose = presentResult)
   predictions <- predict(xgbModel, model.matrix(~ . + 0, testing[, feature]))
   rmse[i] <- sqrt(mean((predictions - testing$fare_amount)^2))
   print(i)
