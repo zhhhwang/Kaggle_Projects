@@ -9,7 +9,8 @@ library(lubridate)
 ###############
 
 # Comments on the other directories
-train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
+# train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
+train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
 
 ######################
 # Data Preprocessing #
@@ -72,7 +73,7 @@ rmse <- rep(NA, folds)
 for(i in 1:folds){
   training <- train[train$cvIndex != i, ] 
   testing <- train[train$cvIndex == i, ] 
-  xgbModel <- xgboost(data = model.matrix(~ . + 0, training[, feature]), label = as.matrix(training[, label]), max.depth = 8, nrounds = 10000, nthread = 4, verbose = 1)
+  xgbModel <- xgboost(data = model.matrix(~ . + 0, training[, feature]), label = as.matrix(training[, label]), max.depth = 8, nrounds = 20000, nthread = 4, verbose = 1)
   predictions <- predict(xgbModel, model.matrix(~ . + 0, testing[, feature]))
   rmse[i] <- sqrt(mean((predictions - testing$fare_amount)^2))
   print(i)
