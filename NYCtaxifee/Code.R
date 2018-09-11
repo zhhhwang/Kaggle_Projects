@@ -55,7 +55,7 @@ train <- train %>% separate(pickup_datetime, into = c("date", "time", "zone"), s
   filter(!(pickup_longitude == 0 | pickup_latitude == 0 | dropoff_latitude == 0 | dropoff_longitude == 0)) %>% filter(passenger_count <= maxPassenger) %>% 
   filter(pickup_longitude > nycLongLwr & pickup_longitude < nycLongUpp & pickup_latitude > nycLatiLwr & pickup_latitude < nycLatiUpp) %>%
   filter(dropoff_longitude > nycLongLwr & dropoff_longitude < nycLongUpp & dropoff_latitude > nycLatiLwr & dropoff_latitude < nycLatiUpp) %>%
-  filter(fair_amount > 0 ) %>%
+  filter(fare_amount > 0) %>%
   mutate(pickup_longitude = (pickup_longitude * pi) / halfCircleDegree, 
          pickup_latitude = (pickup_latitude * pi) / halfCircleDegree,
          dropoff_longitude = (dropoff_longitude * pi) / halfCircleDegree, 
