@@ -9,8 +9,8 @@ library(lubridate)
 ###############
 
 # Comments on the other directories
-# train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
-train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
+train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
+# train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
 
 ######################
 # Data Preprocessing #
@@ -20,19 +20,23 @@ train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
 earthR <- 3958.7631
 maxPassenger <- 6
 halfCircleDegree <- 180
-jfk_coor_lati <- (40.6459 * pi)/halfCircleDegree
 jfk_coor_long <- (-73.7860 * pi)/halfCircleDegree
-lga_coor_lati <- (40.7721 * pi)/halfCircleDegree
+jfk_coor_lati <- (40.6459 * pi)/halfCircleDegree
 lga_coor_long <- (-73.8686 * pi)/halfCircleDegree
-ewr_coor_lati <- (40.6917 * pi)/halfCircleDegree
+lga_coor_lati <- (40.7721 * pi)/halfCircleDegree
 ewr_coor_long <- (-74.1807 * pi)/halfCircleDegree
-feature <- c("passenger_count", "weekday", "miles", "timeFrame", "pickupToJFK", "pickupToLGA", "pickupToEWR", "dropoffToJFK", "dropoffToLGA", "dropoffToEWR") 
+ewr_coor_lati <- (40.6917 * pi)/halfCircleDegree
+nycLongLwr <- -74.30
+nycLongUpp <- -72.90
+nycLatiLwr <- 40.5
+nycLatiUpp <- 42
+feature <- c("passenger_count", "weekday", "miles", "monthFrame", "yearFrame", "timeFrame", "pickupToJFK", "pickupToLGA", "pickupToEWR", "dropoffToJFK", "dropoffToLGA", "dropoffToEWR") 
 label <- c("fare_amount")
-folds <- 5
+folds <- 10
 
 # Const for xgboost
 maxDepth <- 8
-roundNum <- 500
+roundNum <- 200
 threadNum <- 4
 presentResult <- 1
 
@@ -40,7 +44,6 @@ presentResult <- 1
 GPSdistance <- function(coor1_longitude, coor1_latitude, coor2_longitude, coor2_latitude){
   longD <- coor2_longitude - coor1_longitude
   latiD <- coor2_latitude - coor1_latitude
-  
   haverSine <- sin(latiD / 2) * sin(latiD / 2) + cos(coor1_latitude) * cos(coor2_latitude) * sin(longD / 2) * sin(longD / 2)
   haverAngle <- asin(sqrt(haverSine))
   distance <- 2 * earthR * haverAngle
@@ -49,7 +52,10 @@ GPSdistance <- function(coor1_longitude, coor1_latitude, coor2_longitude, coor2_
 
 train <- train %>% separate(pickup_datetime, into = c("date", "time", "zone"), sep = " ") %>% 
   select(-key, -zone) %>%
-  filter(!(pickup_longitude == 0 |  pickup_latitude == 0 | dropoff_latitude == 0 | dropoff_longitude == 0)) %>% filter(passenger_count <= maxPassenger) %>% 
+  filter(!(pickup_longitude == 0 | pickup_latitude == 0 | dropoff_latitude == 0 | dropoff_longitude == 0)) %>% filter(passenger_count <= maxPassenger) %>% 
+  filter(pickup_longitude > nycLongLwr & pickup_longitude < nycLongUpp & pickup_latitude > nycLatiLwr & pickup_latitude < nycLatiUpp) %>%
+  filter(dropoff_longitude > nycLongLwr & dropoff_longitude < nycLongUpp & dropoff_latitude > nycLatiLwr & dropoff_latitude < nycLatiUpp) %>%
+  filter(fair_amount > 0 ) %>%
   mutate(pickup_longitude = (pickup_longitude * pi) / halfCircleDegree, 
          pickup_latitude = (pickup_latitude * pi) / halfCircleDegree,
          dropoff_longitude = (dropoff_longitude * pi) / halfCircleDegree, 
@@ -91,6 +97,8 @@ for(i in 1:folds){
 
 write.table(rmse, "outputRMSE.txt")
 
+##########################
+# Prediction On Test Set #
+##########################
 
-  
-
+#test <- fread("Google Drive/Kaggle_Data/NYCtaxifee/test.csv")
