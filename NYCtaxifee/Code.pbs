@@ -5,7 +5,7 @@
 #PBS -m abe
 #PBS -V
 
-#PBS -l nodes=1:ppn=4,pmem=4096mb,walltime=12:00:00
+#PBS -l nodes=1:ppn=6,pmem=4096mb,walltime=12:00:00
 #PBS -j oe
 
 #PBS -A stats_flux
