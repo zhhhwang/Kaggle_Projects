@@ -3,14 +3,15 @@ library(xgboost)
 library(tidyr)
 library(dplyr)
 library(lubridate)
+library(doParallel)
 
 ###############
 # Import Data #
 ###############
 
 # Comments on the other directories
-train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
-# train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
+# train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
+train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
 
 ######################
 # Data Preprocessing #
@@ -32,15 +33,15 @@ nycLatiLwr <- 40.5
 nycLatiUpp <- 42
 feature <- c("passenger_count", "weekday", "miles", "monthFrame", "yearFrame", "timeFrame", "pickupToJFK", "pickupToLGA", "pickupToEWR", "dropoffToJFK", "dropoffToLGA", "dropoffToEWR") 
 label <- c("fare_amount")
-folds <- 5
+folds <- 10
 
 # Const for xgboost
 maxDepth <- 8
-roundNum <- 50
+roundNum <- 10000
 threadNum <- 4
 presentResult <- 1
-parallelIndicator <- F
-coreToUse <- detectCores() - 2
+parallelIndicator <- T
+coreToUse <- detectCores() - 1
 
 # Funciton in calculating the haversine distance between two gps coordinates
 GPSdistance <- function(coor1_longitude, coor1_latitude, coor2_longitude, coor2_latitude){
