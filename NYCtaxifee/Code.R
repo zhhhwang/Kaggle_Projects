@@ -9,8 +9,8 @@ library(lubridate)
 ###############
 
 # Comments on the other directories
-# train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
-train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
+train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
+# train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
 
 ######################
 # Data Preprocessing #
@@ -32,13 +32,15 @@ nycLatiLwr <- 40.5
 nycLatiUpp <- 42
 feature <- c("passenger_count", "weekday", "miles", "monthFrame", "yearFrame", "timeFrame", "pickupToJFK", "pickupToLGA", "pickupToEWR", "dropoffToJFK", "dropoffToLGA", "dropoffToEWR") 
 label <- c("fare_amount")
-folds <- 10
+folds <- 5
 
 # Const for xgboost
 maxDepth <- 8
-roundNum <- 5000
+roundNum <- 50
 threadNum <- 4
 presentResult <- 1
+parallelIndicator <- F
+coreToUse <- detectCores() - 2
 
 # Funciton in calculating the haversine distance between two gps coordinates
 GPSdistance <- function(coor1_longitude, coor1_latitude, coor2_longitude, coor2_latitude){
@@ -82,13 +84,29 @@ train$cvIndex <- ceiling(sample(1:nrow(train), nrow(train)) / (nrow(train) / fol
 
 # cross validation
 rmse <- rep(NA, folds)
-for(i in 1:folds){
-  training <- train[train$cvIndex != i, ] 
-  testing <- train[train$cvIndex == i, ] 
-  xgbModel <- xgboost(data = model.matrix(~ . + 0, training[, feature]), label = as.matrix(training[, label]), max.depth = maxDepth, nrounds = roundNum, nthread = threadNum, verbose = presentResult)
-  predictions <- predict(xgbModel, model.matrix(~ . + 0, testing[, feature]))
-  rmse[i] <- sqrt(mean((predictions - testing$fare_amount)^2))
-  print(i)
+
+if(!parallelIndicator){
+  for(i in 1:folds){
+    training <- train[train$cvIndex != i, ] 
+    testing <- train[train$cvIndex == i, ] 
+    xgbModel <- xgboost(data = model.matrix(~ . + 0, training[, feature]), label = as.matrix(training[, label]), max.depth = maxDepth, nrounds = roundNum, nthread = threadNum, verbose = presentResult)
+    predictions <- predict(xgbModel, model.matrix(~ . + 0, testing[, feature]))
+    rmse[i] <- sqrt(mean((predictions - testing$fare_amount)^2))
+    print(i)
+  }
+} else{
+  cl <- makeCluster(coreToUse)
+  registerDoParallel(cl)
+  rmse <- foreach(i = 1:folds,
+          .packages = 'xgboost') %dopar% {
+    training <- train[train$cvIndex != i, ] 
+    testing <- train[train$cvIndex == i, ] 
+    xgbModel <- xgboost(data = model.matrix(~ . + 0, training[, feature]), label = as.matrix(training[, label]), max.depth = maxDepth, nrounds = roundNum, nthread = threadNum, verbose = presentResult)
+    predictions <- predict(xgbModel, model.matrix(~ . + 0, testing[, feature]))
+    sqrt(mean((predictions - testing$fare_amount)^2))
+  }
+  stopCluster(cl)
+  unlist(rmse)
 }
 
 # Model Training and Testing
