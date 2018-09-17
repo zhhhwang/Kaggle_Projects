@@ -13,7 +13,7 @@ library(doParallel)
 # train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
 # nycWeather <- fread("Google Drive/Kaggle_Data/NYCtaxifee/nycWeather.csv")
 train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
-train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/nycWeather.csv")
+nycWeather <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/nycWeather.csv")
 
 ######################
 # Data Preprocessing #
