@@ -10,10 +10,10 @@ library(doParallel)
 ###############
 
 # Comments on the other directories
-train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
-nycWeather <- fread("Google Drive/Kaggle_Data/NYCtaxifee/nycWeather.csv")
-# train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
-# train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/nycWeather.csv")
+# train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
+# nycWeather <- fread("Google Drive/Kaggle_Data/NYCtaxifee/nycWeather.csv")
+train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
+train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/nycWeather.csv")
 
 ######################
 # Data Preprocessing #
@@ -38,14 +38,14 @@ feature <- c("passenger_count", "weekday", "miles", "monthFrame",
              "pickupToEWR", "dropoffToJFK", "dropoffToLGA", "dropoffToEWR", 
              "AWND", "PRCP", "SNOW", "SNWD", "TMAX") 
 label <- c("fare_amount")
-folds <- 5
+folds <- 10
 
 # Const for xgboost
 maxDepth <- 8
-roundNum <- 100
+roundNum <- 10000
 threadNum <- 4
 presentResult <- 1
-parallelIndicator <- F
+parallelIndicator <- T
 coreToUse <- detectCores() - 1
 
 # Funciton in calculating the haversine distance between two gps coordinates
