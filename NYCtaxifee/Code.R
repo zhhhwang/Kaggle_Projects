@@ -10,8 +10,10 @@ library(doParallel)
 ###############
 
 # Comments on the other directories
-# train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
-train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
+train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
+nycWeather <- fread("Google Drive/Kaggle_Data/NYCtaxifee/nycWeather.csv")
+# train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
+# train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/nycWeather.csv")
 
 ######################
 # Data Preprocessing #
@@ -31,16 +33,19 @@ nycLongLwr <- -74.30
 nycLongUpp <- -72.90
 nycLatiLwr <- 40.5
 nycLatiUpp <- 42
-feature <- c("passenger_count", "weekday", "miles", "monthFrame", "yearFrame", "timeFrame", "pickupToJFK", "pickupToLGA", "pickupToEWR", "dropoffToJFK", "dropoffToLGA", "dropoffToEWR") 
+feature <- c("passenger_count", "weekday", "miles", "monthFrame", 
+             "yearFrame", "timeFrame", "pickupToJFK", "pickupToLGA", 
+             "pickupToEWR", "dropoffToJFK", "dropoffToLGA", "dropoffToEWR", 
+             "AWND", "PRCP", "SNOW", "SNWD", "TMAX") 
 label <- c("fare_amount")
-folds <- 10
+folds <- 5
 
 # Const for xgboost
 maxDepth <- 8
-roundNum <- 10000
+roundNum <- 100
 threadNum <- 4
 presentResult <- 1
-parallelIndicator <- T
+parallelIndicator <- F
 coreToUse <- detectCores() - 1
 
 # Funciton in calculating the haversine distance between two gps coordinates
@@ -53,7 +58,7 @@ GPSdistance <- function(coor1_longitude, coor1_latitude, coor2_longitude, coor2_
   return(distance)
 }
 
-train <- train %>% separate(pickup_datetime, into = c("date", "time", "zone"), sep = " ") %>% 
+train <- train %>% separate(pickup_datetime, into = c("DATE", "time", "zone"), sep = " ") %>% 
   select(-key, -zone) %>%
   filter(!(pickup_longitude == 0 | pickup_latitude == 0 | dropoff_latitude == 0 | dropoff_longitude == 0)) %>% filter(passenger_count <= maxPassenger) %>% 
   filter(pickup_longitude > nycLongLwr & pickup_longitude < nycLongUpp & pickup_latitude > nycLatiLwr & pickup_latitude < nycLatiUpp) %>%
@@ -63,17 +68,22 @@ train <- train %>% separate(pickup_datetime, into = c("date", "time", "zone"), s
          pickup_latitude = (pickup_latitude * pi) / halfCircleDegree,
          dropoff_longitude = (dropoff_longitude * pi) / halfCircleDegree, 
          dropoff_latitude = (dropoff_latitude * pi) / halfCircleDegree) %>%
-  mutate(weekday = weekdays(as.Date(date))) %>% 
+  mutate(weekday = weekdays(as.Date(DATE))) %>% 
   mutate(miles = GPSdistance(pickup_longitude, pickup_latitude, dropoff_longitude, dropoff_latitude)) %>%
   mutate(timeFrame = substr(time, 1, 2)) %>% mutate(timeFrame = as.numeric(timeFrame)) %>%
-  mutate(yearFrame = substr(date, 1, 4)) %>% mutate(yearFrame = as.numeric(yearFrame)) %>%
-  mutate(monthFrame = substr(date, 6, 7)) %>% mutate(monthFrame = as.numeric(monthFrame)) %>% 
+  mutate(yearFrame = substr(DATE, 1, 4)) %>% mutate(yearFrame = as.numeric(yearFrame)) %>%
+  mutate(monthFrame = substr(DATE, 6, 7)) %>% mutate(monthFrame = as.numeric(monthFrame)) %>% 
   mutate(pickupToJFK = (GPSdistance(pickup_longitude, pickup_latitude, jfk_coor_long, jfk_coor_lati))) %>%
   mutate(pickupToLGA = (GPSdistance(pickup_longitude, pickup_latitude, lga_coor_long, lga_coor_lati))) %>%
   mutate(pickupToEWR = (GPSdistance(pickup_longitude, pickup_latitude, ewr_coor_long, ewr_coor_lati))) %>%
   mutate(dropoffToJFK = (GPSdistance(dropoff_longitude, dropoff_latitude, jfk_coor_long, jfk_coor_lati))) %>%
   mutate(dropoffToLGA = (GPSdistance(dropoff_longitude, dropoff_latitude, lga_coor_long, lga_coor_lati))) %>%
   mutate(dropoffToEWR = (GPSdistance(dropoff_longitude, dropoff_latitude, ewr_coor_long, ewr_coor_lati)))
+
+nycWeather <- nycWeather %>% select(DATE, AWND, PRCP, SNOW, SNWD, TMAX)
+
+train <- merge(train, nycWeather, by = "DATE")
+train <- train[complete.cases(train), ]
 
   
 ########################
@@ -114,6 +124,7 @@ if(!parallelIndicator){
 # xgbModel <- xgboost(data = model.matrix(~ . + 0, train[, feature]), label = as.matrix(train[, label]), max.depth = 6, nrounds = 1000, nthread = 2, verbose = 1)
 # predictions <- predict(xgbModel, model.matrix(~ . + 0, train[, feature]))
 
+mean(rmse)
 write.table(rmse, "outputRMSE.txt")
 
 ##########################
