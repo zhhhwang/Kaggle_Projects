@@ -10,7 +10,7 @@ library(doParallel)
 ####################
 
 # Programming Settings
-localRunning <- T
+localRunning <- F
 doValidation <- F
 doPrediction <- T
 parallelIndicator <- F
@@ -25,7 +25,7 @@ folds <- 5
 
 # Const for xgboost
 maxDepth <- 10
-roundNum <- 100
+roundNum <- 20000 
 threadNum <- 4
 presentResult <- 1
 coreToUse <- detectCores() - 1
@@ -177,6 +177,6 @@ if(doPrediction){
   
   fare_amount <- predict(xgbModel, model.matrix(~ . + 0, test[, feature]))
   test <- cbind(test, fare_amount) %>% select(key, fare_amount)
-  write.table(test, "submission.txt")
+  write.table(test, "submission.csv")
 }
 
