@@ -124,7 +124,7 @@ if(!parallelIndicator){
 # xgbModel <- xgboost(data = model.matrix(~ . + 0, train[, feature]), label = as.matrix(train[, label]), max.depth = 6, nrounds = 1000, nthread = 2, verbose = 1)
 # predictions <- predict(xgbModel, model.matrix(~ . + 0, train[, feature]))
 
-mean(rmse)
+mean(unlist(rmse))
 write.table(rmse, "outputRMSE.txt")
 
 ##########################
