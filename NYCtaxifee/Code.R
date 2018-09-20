@@ -10,10 +10,10 @@ library(doParallel)
 ###############
 
 # Comments on the other directories
-# train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
-# nycWeather <- fread("Google Drive/Kaggle_Data/NYCtaxifee/nycWeather.csv")
-train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
-nycWeather <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/nycWeather.csv")
+train <- fread("Google Drive/Kaggle_Data/NYCtaxifee/train_small.csv")
+nycWeather <- fread("Google Drive/Kaggle_Data/NYCtaxifee/nycWeather.csv")
+# train <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/train_small.csv")
+# nycWeather <- fread("/home/zhhhwang/Kaggle_Data/NYCtaxifee/nycWeather.csv")
 
 ######################
 # Data Preprocessing #
@@ -42,7 +42,7 @@ folds <- 10
 
 # Const for xgboost
 maxDepth <- 8
-roundNum <- 10000
+roundNum <- 100
 threadNum <- 4
 presentResult <- 1
 parallelIndicator <- T
