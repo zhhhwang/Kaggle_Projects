@@ -10,7 +10,7 @@ library(doParallel)
 ####################
 
 # Programming Settings
-localRunning <- T
+localRunning <- F
 doValidation <- F
 doPrediction <- T
 parallelIndicator <- F
@@ -25,8 +25,8 @@ folds <- 5
 
 # Const for xgboost
 maxDepth <- 10
-roundNum <- 100
 threadNum <- 10
+roundNum <- 20000 
 presentResult <- 1
 coreToUse <- detectCores() - 1
 
