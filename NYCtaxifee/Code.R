@@ -26,7 +26,7 @@ folds <- 5
 # Const for xgboost
 maxDepth <- 10
 roundNum <- 100
-threadNum <- 4
+threadNum <- 10
 presentResult <- 1
 coreToUse <- detectCores() - 1
 
@@ -170,6 +170,8 @@ if(doValidation){
 # Prediction On Test Set #
 ##########################
 
+
+
 if(doPrediction){
   
   xgbModel <- xgboost(data = model.matrix(~ . + 0, train[, feature]), label = as.matrix(train[, label]), 
@@ -177,6 +179,6 @@ if(doPrediction){
   
   fare_amount <- predict(xgbModel, model.matrix(~ . + 0, test[, feature]))
   test <- cbind(test, fare_amount) %>% select(key, fare_amount)
-  write.table(test, "submission.txt")
+  write.table(test, "submission.csv")
 }
 
