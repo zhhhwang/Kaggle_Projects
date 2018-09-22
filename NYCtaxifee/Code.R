@@ -25,8 +25,8 @@ folds <- 5
 
 # Const for xgboost
 maxDepth <- 10
-threadNum <- 10
-roundNum <- 20000 
+threadNum <- detectCores() - 1
+roundNum <- 40000 
 presentResult <- 1
 coreToUse <- detectCores() - 1
 
